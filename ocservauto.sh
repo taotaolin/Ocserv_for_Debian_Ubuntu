@@ -39,7 +39,7 @@ Error="${Red_font_prefix}[错误]${Font_color_suffix}"
 Tip="${Green_font_prefix}[注意]${Font_color_suffix}"
 
 
-sh_ver="1.0.5"
+sh_ver="1.0.6 2019.11.24"
 
 #default info set
 function Default_Info(){

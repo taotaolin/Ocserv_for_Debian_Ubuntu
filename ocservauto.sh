@@ -138,7 +138,7 @@ EOFSYS
     [ -f "/proc/sys/net/ipv4/tcp_fastopen" ] && [ -f /etc/sysctl.conf ] && sed -i 's/#net.ipv4.tcp_fastopen/net.ipv4.tcp_fastopen/g' /etc/sysctl.conf
     sysctl -p >/dev/null 2>&1
     echo -e "${Info} ipv4 转发服务已经部署完成 !"
-    wget --no-check-certificate -qO- 'https://www.ramiko.me/kms/iptables.rules.sh' >/etc/ocserv/iptables.rules    ###########################################################
+    wget --no-check-certificate -qO- 'https://raw.githubusercontent.com/taotaolin/Ocserv_for_Debian_Ubuntu/master/iptables.rules.sh' >/etc/ocserv/iptables.rules    ###########################################################
     sed -i '/\/etc\/ocserv\/iptables.rules/d' /etc/crontab
     while [ -z "$(sed -n '$p' /etc/crontab)" ]; do sed -i '$d' /etc/crontab; done
     sed -i "\$a\@reboot root bash /etc/ocserv/iptables.rules\n\n" /etc/crontab
@@ -1079,7 +1079,7 @@ echo "==========================================================================
 
 #ocserv配置文件所在的网络文件夹位置
 #如果fork的话，请修改为自己的网络地址
-NET_OC_CONF_DOC="https://raw.githubusercontent.com/user1121114685/Ocserv_for_Debian_Ubuntu/master"
+NET_OC_CONF_DOC="https://raw.githubusercontent.com/taotaolin/Ocserv_for_Debian_Ubuntu/master"
 #推荐的默认版本
 Default_oc_version="0.11.8"
 #开启分组模式，每位用户都会分配到All组和Route组。
@@ -1263,7 +1263,7 @@ Restart_ocserv(){
 
 
 Service_ocserv(){
-	if ! wget --no-check-certificate https://raw.githubusercontent.com/user1121114685/Ocserv_for_Debian_Ubuntu/master/ocserv_debian -O /etc/init.d/ocserv; then
+	if ! wget --no-check-certificate https://raw.githubusercontent.com/taotaolin/Ocserv_for_Debian_Ubuntu/master/ocserv_debian -O /etc/init.d/ocserv; then
 		echo -e "${Error} ocserv 服务 管理脚本下载失败 !" && over
 	fi
 	chmod +x /etc/init.d/ocserv
@@ -1273,13 +1273,13 @@ Service_ocserv(){
 
 
 Update_Shell(){
-	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/user1121114685/Ocserv_for_Debian_Ubuntu/master/ocservauto.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
+	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/taotaolin/Ocserv_for_Debian_Ubuntu/master/ocservauto.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
 	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 无法链接到 Github !" && exit 0
 	if [[ -e "/etc/init.d/ocserv" ]]; then
 		rm -rf /etc/init.d/ocserv
 		Service_ocserv
 	fi
-	wget -N --no-check-certificate "https://raw.githubusercontent.com/user1121114685/Ocserv_for_Debian_Ubuntu/master/ocservauto.sh" && chmod +x ocservauto.sh
+	wget -N --no-check-certificate "https://raw.githubusercontent.com/taotaolin/Ocserv_for_Debian_Ubuntu/master/ocservauto.sh" && chmod +x ocservauto.sh
 	echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !(注意：因为更新方式为直接覆盖当前运行的脚本，所以可能下面会提示一些报错，无视即可)" && exit 0
 }
 

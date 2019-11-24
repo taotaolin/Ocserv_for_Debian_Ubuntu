@@ -12,7 +12,6 @@ apt-get update
 apt-get upgrade
 apt-get install wget
 wget -N --no-check-certificate "https://raw.githubusercontent.com/taotaolin/Ocserv_for_Debian_Ubuntu/master/ocservauto.sh" && chmod +x ocservauto.sh && bash ocservauto.sh
-bash ocservauto.sh
 ```
 
 ![首页图片](https://github.com/user1121114685/Ocserv_for_Debian_Ubuntu/blob/master/20181213005045.jpg?raw=true "封面图片简介") 

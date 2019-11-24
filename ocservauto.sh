@@ -99,16 +99,9 @@ function get_random_word(){
     echo $str
 }
 
-#系统转发设置
-function SYSCONF(){
-    sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
-    echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
-    sed -i '/net.ipv4.tcp_syncookies/d' /etc/sysctl.conf
-    echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.conf
-    sed -i '/soft nofile/d' /etc/security/limits.conf
-    echo "* soft nofile 51200" >> /etc/security/limits.conf
-    sed -i '/hard nofile/d' /etc/security/limits.conf
-    echo "* hard nofile 51200" >> /etc/security/limits.conf
+# 防火墙设置
+Set_iptables(){
+	# echo -e "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
     cat >/etc/sysctl.conf<<EOFSYS
 #This line below add by user.
 #sysctl net.ipv4.tcp_available_congestion_control
@@ -136,12 +129,48 @@ net.ipv4.icmp_echo_ignore_all = 1
 #net.ipv4.tcp_fastopen = 3
 EOFSYS
     [ -f "/proc/sys/net/ipv4/tcp_fastopen" ] && [ -f /etc/sysctl.conf ] && sed -i 's/#net.ipv4.tcp_fastopen/net.ipv4.tcp_fastopen/g' /etc/sysctl.conf
-    sysctl -p >/dev/null 2>&1
+	sysctl -p
+	ifconfig_status=$(ifconfig)
+	if [[ -z ${ifconfig_status} ]]; then
+		echo -e "${Error} ifconfig 未安装 !"
+		read -e -p "请手动输入你的网卡名(一般情况下，网卡名为 eth0，Debian9 则为 ens3，CentOS Ubuntu 最新版本可能为 enpXsX(X代表数字或字母)，OpenVZ 虚拟化则为 venet0):" Network_card
+		[[ -z "${Network_card}" ]] && echo "取消..." && exit 1
+	else
+		Network_card=$(ifconfig|grep "eth0")
+		if [[ ! -z ${Network_card} ]]; then
+			Network_card="eth0"
+		else
+			Network_card=$(ifconfig|grep "ens3")
+			if [[ ! -z ${Network_card} ]]; then
+				Network_card="ens3"
+			else
+				Network_card=$(ifconfig|grep "venet0")
+				if [[ ! -z ${Network_card} ]]; then
+					Network_card="venet0"
+				else
+					ifconfig
+					read -e -p "检测到本服务器的网卡非 eth0 \ ens3(Debian9) \ venet0(OpenVZ) \ enpXsX(CentOS Ubuntu 最新版本，X代表数字或字母)，请根据上面输出的网卡信息手动输入你的网卡名:" Network_card
+					[[ -z "${Network_card}" ]] && echo "取消..." && exit 1
+				fi
+			fi
+		fi
+	fi
     echo -e "${Info} ipv4 转发服务已经部署完成 !"
-    wget --no-check-certificate -qO- 'https://raw.githubusercontent.com/taotaolin/Ocserv_for_Debian_Ubuntu/master/iptables.rules.sh' >/etc/ocserv/iptables.rules    ###########################################################
-    sed -i '/\/etc\/ocserv\/iptables.rules/d' /etc/crontab
-    while [ -z "$(sed -n '$p' /etc/crontab)" ]; do sed -i '$d' /etc/crontab; done
-    sed -i "\$a\@reboot root bash /etc/ocserv/iptables.rules\n\n" /etc/crontab
+    TCP=`cat "/etc/ocserv/ocserv.conf" |grep '#\?tcp-port' |cut -d"=" -f2 |sed 's/\s//g'`
+    UDP=`cat "/etc/ocserv/ocserv.conf" |grep '#\?udp-port' |cut -d"=" -f2 |sed 's/\s//g'`
+    IPV4_NET=`cat "/etc/ocserv/ocserv.conf" |grep '^ipv4-network' |cut -d"=" -f2 |sed 's/\s//g'`
+
+    iptables -t nat -A POSTROUTING -s  ${IPV4_NET}/24 -o ${Network_card} -j MASQUERADE
+    [ -n "$TCP" ] && iptables -I INPUT -p tcp --dport ${TCP} -j ACCEPT
+    [ -n "$UDP" ] && iptables -I INPUT -p udp --dport ${UDP} -j ACCEPT
+    iptables -A FORWARD -s ${IPV4_NET}/24 -j ACCEPT
+    iptables -A FORWARD -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+    iptables -A FORWARD -o vpns+ -j ACCEPT
+    iptables -A FORWARD -i vpns+ -j ACCEPT
+    	
+	iptables-save > /etc/iptables.up.rules
+	echo -e '#!/bin/bash\n/sbin/iptables-restore < /etc/iptables.up.rules' > /etc/network/if-pre-up.d/iptables
+	chmod +x /etc/network/if-pre-up.d/iptables
     echo -e "${Info} iptables 防火墙设置已经完成 !"
 }
 
@@ -276,11 +305,11 @@ function install_OpenConnect_VPN_server(){
 #configuration 设定软件相关选项
     set_ocserv_conf
 #防火墙配置
-    SYSCONF
+    Set_iptables
 #stop all 关闭所有正在运行的ocserv软件
     stop_ocserv
 #no certificate,no start 没有服务器证书则不启动
-    [ "$self_signed_ca" = "y" ] && start_ocserv 
+    # [ "$self_signed_ca" = "y" ] && start_ocserv 
 #show result 显示结果
     show_ocserv    
 }
@@ -301,7 +330,7 @@ function install_Oneclientcer(){
     mv ${Script_Dir}/ca-cert.pem /etc/ocserv
     set_ocserv_conf
     #防火墙配置
-    SYSCONF
+    Set_iptables
     [ "$CRL_ADD" = "y" ] || {
         sed -i 's|^crl =.*|#&|' ${LOC_OC_CONF}
     }
@@ -740,7 +769,7 @@ function set_ocserv_conf(){
     echo "route = 0.0.0.0/128.0.0.0" > /etc/ocserv/config-per-group/All
     echo "route = 128.0.0.0/128.0.0.0" >> /etc/ocserv/config-per-group/All
 #boot from the start 开机自启
-Service_ocserv
+    Service_ocserv
     # [ "$ocserv_boot_start" = "y" ] && {
     #     print_info "Enable ocserv service to start during bootup."
     #     [ "$ocserv_systemd" = "y" ] && {
@@ -799,6 +828,16 @@ function stop_ocserv(){
             fi
         done
     fi
+}
+
+start_ocserv(){
+	check_installed_status
+	check_pid
+	[[ ! -z ${PID} ]] && echo -e "${Error} ocserv 正在运行，请检查 !" && exit 1
+	/etc/init.d/ocserv start
+	sleep 2s
+	check_pid
+	[[ ! -z ${PID} ]] && View_Config
 }
 
 function start_ocserv(){

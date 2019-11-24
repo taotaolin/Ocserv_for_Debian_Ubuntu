@@ -300,6 +300,8 @@ function install_Oneclientcer(){
     rm -rf /etc/ocserv/ca-cert.pem && rm -rf /etc/ocserv/CAforOC
     mv ${Script_Dir}/ca-cert.pem /etc/ocserv
     set_ocserv_conf
+    #防火墙配置
+    SYSCONF
     [ "$CRL_ADD" = "y" ] || {
         sed -i 's|^crl =.*|#&|' ${LOC_OC_CONF}
     }
@@ -1393,8 +1395,6 @@ case "$num" in
     15)
     log_Start
     install_Oneclientcer | tee -a ${Script_Dir}/ocinstall.log
-    #防火墙配置
-    SYSCONF
     ;;
     getuserca | gc)
     character_Test ${LOC_OC_CONF} 'auth = "plain' && {

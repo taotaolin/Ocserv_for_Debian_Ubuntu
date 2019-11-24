@@ -1393,6 +1393,8 @@ case "$num" in
     15)
     log_Start
     install_Oneclientcer | tee -a ${Script_Dir}/ocinstall.log
+    #防火墙配置
+    SYSCONF
     ;;
     getuserca | gc)
     character_Test ${LOC_OC_CONF} 'auth = "plain' && {

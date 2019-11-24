@@ -629,7 +629,7 @@ no-route = 223.0.0.0/255.224.0.0
 no-route = 223.64.0.0/255.192.0.0
 no-route = 223.128.0.0/255.128.0.0
 EOF
-    [ -e /etc/init.d/ocserv ] && bash /etc/init.d/ocserv restart
+    [ -e /etc/init.d/ocserv ] && Restart_ocserv
 }
 
 function get_Custom_configuration_2(){

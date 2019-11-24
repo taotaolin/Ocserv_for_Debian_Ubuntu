@@ -1,8 +1,8 @@
-## Ocservauto For Debian 0.8
+## Ocservauto For Debian 9
 
 This script may help you setup your own openconnect_server in debian(>=7),ubuntu(>=14.04).
 
-这是一枚适用于deibian的openconnect_server安装脚本。中文详情 [戳这里](http://www.fanyueciyuan.info/fq/ocserv-debian.html)
+这是一枚适用于deibian的openconnect_server安装脚本。魔改版本，原版请看 [戳这里](http://www.fanyueciyuan.info/fq/ocserv-debian.html)
 
 ============
 
@@ -11,20 +11,8 @@ This script may help you setup your own openconnect_server in debian(>=7),ubuntu
 apt-get update
 apt-get upgrade
 apt-get install wget
-wget -N --no-check-certificate "https://raw.githubusercontent.com/user1121114685/Ocserv_for_Debian_Ubuntu/master/ocservauto.sh" && chmod +x ocservauto.sh && bash ocservauto.sh
+wget -N --no-check-certificate "https://raw.githubusercontent.com/taotaolin/Ocserv_for_Debian_Ubuntu/master/ocservauto.sh" && chmod +x ocservauto.sh && bash ocservauto.sh
 bash ocservauto.sh
-```
-
-Profiles in /etc/ocserv/
-
-When you change the profiles,restart the vpn server.
-```shell
-/etc/init.d/ocserv restart
-```
-
-You can get help 
-```shell
-bash ocservauto.sh h
 ```
 
 ![首页图片](https://github.com/user1121114685/Ocserv_for_Debian_Ubuntu/blob/master/20181213005045.jpg?raw=true "封面图片简介") 
